@@ -84,7 +84,7 @@ def validate():
                 if label=='positive':
                     if scanner=='gitleaks':require(any(e['rule_id']=='gaia-mcp-bearer-token' for e in records),'Custom token fixture not found')
                     if scanner=='osv-scanner':require(any(e['package_name']=='urllib3' for e in records),'Dependency fixture not found')
-                    if scanner=='trivy':require(any(e['rule_id']=='AVD-DS-0002' for e in records),'Root-user fixture not found')
+                    if scanner=='trivy':require(any(e['rule_id']=='DS-0002' for e in records),'Root-user fixture not found')
                     if scanner=='semgrep-ce':
                         for rule in ('gaia.python.unsafe-pickle-deserialization','gaia.python.subprocess-shell-true'):
                             require(any(e['rule_id'].endswith(rule) for e in records),'SAST fixture not found')
