@@ -1,0 +1,12 @@
+# Static-only synthetic scanner fixture. NEVER execute this file.
+import pickle
+import subprocess
+
+def candidate(data):
+    return pickle.loads(data)
+
+def shell_candidate(text):
+    return subprocess.run(text, shell=True)
+
+def safe_shell_candidate(text):
+    return subprocess.run(["printf", "%s", text], shell=False)

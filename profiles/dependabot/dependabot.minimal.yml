@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "updates": [
+    {
+      "package-ecosystem": "pip",
+      "directory": "/",
+      "schedule": {
+        "interval": "weekly",
+        "day": "sunday",
+        "time": "03:00",
+        "timezone": "Etc/UTC"
+      },
+      "open-pull-requests-limit": 3,
+      "groups": {
+        "dependencies": {
+          "patterns": [
+            "*"
+          ]
+        }
+      },
+      "ignore": [
+        {
+          "dependency-name": "torch"
+        },
+        {
+          "dependency-name": "transformers"
+        }
+      ]
+    },
+    {
+      "package-ecosystem": "github-actions",
+      "directory": "/",
+      "schedule": {
+        "interval": "monthly",
+        "day": "first-sunday",
+        "time": "04:00",
+        "timezone": "Etc/UTC"
+      },
+      "open-pull-requests-limit": 2,
+      "groups": {
+        "actions": {
+          "patterns": [
+            "*"
+          ]
+        }
+      }
+    },
+    {
+      "package-ecosystem": "npm",
+      "directory": "/",
+      "schedule": {
+        "interval": "weekly",
+        "day": "sunday",
+        "time": "03:30",
+        "timezone": "Etc/UTC"
+      },
+      "open-pull-requests-limit": 3,
+      "groups": {
+        "devDependencies": {
+          "dependency-type": "development",
+          "patterns": [
+            "*"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "schema_version": "1.0.0",
+  "updated_at": "2026-11-08T00:00:00Z",
+  "repositories": [
+    {
+      "repository": "gaia-research/gaia-security",
+      "tier": "tier-0-governance",
+      "visibility": "public",
+      "default_branch": "main",
+      "codeql_mode": "pending-founder-approval",
+      "codeql_languages": [
+        "python",
+        "actions"
+      ],
+      "private_vulnerability_reporting": "pending-founder-approval",
+      "dependabot_security_updates": "pending-evaluation",
+      "merge_strategy": "merge-commit",
+      "security_md": "SECURITY.md",
+      "native_guards": [
+        "gaia_security.cli.validate_configs",
+        "gaia_security.cli.selftest"
+      ],
+      "scanners": [
+        "gitleaks",
+        "osv-scanner",
+        "trivy",
+        "semgrep-ce"
+      ]
+    },
+    {
+      "repository": "gaia-research/gaia-skill-tree",
+      "tier": "tier-1-core",
+      "visibility": "public",
+      "default_branch": "main",
+      "codeql_mode": "default-setup",
+      "codeql_languages": [
+        "actions",
+        "javascript-typescript",
+        "python"
+      ],
+      "private_vulnerability_reporting": "enabled",
+      "dependabot_security_updates": "pending-evaluation",
+      "merge_strategy": "merge-commit-only",
+      "security_md": "SECURITY.md",
+      "native_guards": [
+        "gaia_cli.securityScanner",
+        "steward.sensors_security",
+        "scripts/check_html_sinks.py",
+        "scripts/check_security_dispositions.py"
+      ],
+      "scanners": [
+        "codeql",
+        "gitleaks",
+        "osv-scanner",
+        "trivy",
+        "semgrep-ce",
+        "pip-audit"
+      ]
+    },
+    {
+      "repository": "gaia-research/gaia-skill-heaven",
+      "tier": "tier-1-core",
+      "visibility": "public",
+      "default_branch": "main",
+      "codeql_mode": "default-setup",
+      "codeql_languages": [
+        "actions",
+        "javascript-typescript",
+        "python"
+      ],
+      "private_vulnerability_reporting": "enabled",
+      "dependabot_security_updates": "enabled",
+      "merge_strategy": "linear-squash",
+      "security_md": "SECURITY.md",
+      "native_guards": [
+        "scripts/build-mcp.mjs::sdk-uri-template-hardening",
+        "packages/core/zero-runtime-deps"
+      ],
+      "scanners": [
+        "codeql",
+        "dependabot",
+        "gitleaks",
+        "osv-scanner",
+        "trivy",
+        "semgrep-ce"
+      ]
+    }
+  ],
+  "expansion_candidates": [
+    {
+      "repository": "gaia-research/gaia-research",
+      "tier": "tier-1-core",
+      "status": "planned",
+      "description": "Primary research monorepo, model experiments, and evaluation harnesses."
+    },
+    {
+      "repository": "gaia-research/gaia-operator",
+      "tier": "tier-2-companion",
+      "status": "planned",
+      "description": "Autonomous cluster operator and worker node coordinator."
+    },
+    {
+      "repository": "gaia-research/gaia-mcp",
+      "tier": "tier-2-companion",
+      "status": "planned",
+      "description": "Standardized MCP bundles and reference client connectors."
+    },
+    {
+      "repository": "gaia-research/skill-cost",
+      "tier": "tier-2-companion",
+      "status": "planned",
+      "description": "Token and inference cost telemetry tracker for autonomous skill agents."
+    }
+  ]
+}

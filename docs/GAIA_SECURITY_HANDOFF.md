@@ -1,0 +1,73 @@
+# Gaia Security foundational implementation handoff
+Date: 2026-11-08. Proposed for independent review; **not merged or deployed**.
+
+## 1. Architecture and implementation
+This is Gaia Research's canonical governance/profile/normalization foundation, not a central scan service or runtime dependency. Federated repositories retain scanning execution and GitHub-native alerts. The zero-third-party-runtime-dependency Python 3.11+ package implements discovery, local/remote posture inventory, authorized native scanner adapters, advisory alias/package deduplication, restricted reports and advisory Steward export.
+
+Detection -> six-point evidence-based validation -> authorized remediation/verification. New detections are **pending** with unknown assessment fields. No path/devDependency heuristics dismiss or prove findings. Trusted dispositions are exact-repository/finding, clean-revision, full-evidence-SHA-256 and expiry bound, with explicit reviewer/evidence requirements and runtime schema/semantic validation. The registry starts empty; no fabricated human approvals or accepted risks are shipped. Reports cannot authorize code changes or supply target-controlled policy. Export checks schema, report/checkout revision, GitHub origin, reconstructed canonical identities and reviewed evidence digests.
+
+Governance policies cover disclosure, prioritization, ownership, onboarding, scanner configuration, triage, remediation verification and Steward boundaries. JSON schemas align wire outputs. One compatible integration PR per repository/run is the default. There is no automatic dispatch, repair, PR merge, release or deployment code.
+
+The optional reusable/manual workflow scans the caller's onboarded public repository, checks a pinned governance SHA and installs SHA-256-verified pinned scanners. It never uploads detailed findings to public artifacts. Local/approved private-runner execution is the durable evidence path. Lean path-scoped CI validates contracts; no new automatic scanner workflow is installed in either initial target.
+
+## 2. Existing security infrastructure discovered
+See the self-contained [inventory](INVENTORY.md), produced from pre-implementation reconnaissance and authenticated read-only API checks. Both initial targets use working **CodeQL default setup**, default query suite, remote threat model, weekly schedule, Python / JavaScript-TypeScript / Actions coverage. Recent main analyses were checked independently of workflow files. No advanced workflow is added or replaced.
+
+Skill Tree retains its native security scanner, DOM/model guards, historical credential-disposition guard, pip-audit/Steward sensors, ownership gates and founder locks. Skill Heaven retains its SECURITY.md trust model, deterministic bundles, pinned SDK build patch, harness/installer checks, native update integration and branch rules. Zero declared dependencies does not mean bundled SDK/zod code is absent.
+
+Gaia Security did not exist (authenticated 404). A public repository and minimal README/LICENSE bootstrap commit established the PR base. This is the only direct default-branch content operation; security capability changes remain in the integration PR. New repository CodeQL/PVR/secret-scanning settings were observed disabled and left unchanged. Interim private intake uses Skill Tree's existing enabled channel, documented in SECURITY.md.
+
+## 3. Changes made
+- Governance/SECURITY.md/CODEOWNERS, onboarding registry, scanner profiles and JSON schemas.
+- Python standard-library CLI and native Gitleaks/OSV/Trivy/Semgrep adapters; CodeQL/Dependabot open-alert API ingestion, pagination and explicit incomplete states.
+- Owner-only no-overwrite JSON/Markdown reports; counts-only normal scan receipt; redaction as defense in depth (not permission to publish).
+- SHA-256-checked Linux amd64/arm64 scanner installer; explicit pinned manual/reusable workflow and lean contract CI.
+- Regression tests for conservative triage, trusted policy loading, alias/package dedup, scanner failure reporting, serialization/schema contracts, redaction and Steward non-authorization.
+- Companion integration PRs add/preserve SECURITY.md and small defensive source/test changes without changing target workflows or settings. Each target carries its own handoff.
+
+## 4. Validation evidence
+### Automated package checks
+`PYTHONPATH=src python3 -m unittest discover -s tests -q`: **43 tests passed** after the final correction (0.550s on Python 3.14.6). Eleven adversarial regression tests were added across rounds 2/3. Includes actual Draft 2020-12 schema/instance checks with development-only jsonschema, workflow YAML parsing, unknown/null validation, missing-policy failure and native-adapter mocks. `validate-configs` and `selftest` pass. Syntax/profile checks are explicitly labeled; they do not claim every native rule's semantics or cloud execution is validated.
+
+### Native execution, not fabricated clean scans
+- **Gitleaks:** central extended-default profile executed on all three worktrees. Initial target observations: Tree 150 candidates, Heaven 0; central tests initially produced 5 synthetic-token candidates. Tests were rewritten to construct dummy values at runtime, without scanner suppressions. Re-run central working-tree scan returned **0 candidates**, exit 0. Local distro binary version string is unreported; this limitation is recorded rather than inventing a version.
+- **OSV-Scanner 2.7.0 / Scalibr 0.5.3:** target native scans executed. Tree: 110 advisory records; Heaven: 5; these are candidate records, not validated vulnerabilities. Central package has no recognized dependency sources; native exit 128 explicitly reports no sources and is classified not applicable, **not proof of dependency safety**.
+- **Trivy 0.76.2:** filesystem **misconfiguration-only** scans executed with central profile on all three repositories; 0 candidates. No claim of image/OS CVE or “zero production vulnerability” coverage.
+- **Semgrep CE core 1.184.0:** pinned PyPI arm64 wheel hash verified; core executed through local glibc/proot after resolving Android loader/certificate differences. Native parser accepted all baseline rules. Static-only Python fixture produced two expected positive rule matches, safe shell=False case not flagged, zero core errors. This is native **core fixture validation**, not a full repository CE Python CLI scan; the latter is unavailable on the host.
+- **GitHub API:** read-only paginated open CodeQL/Dependabot ingestion executed. Tree returned 1 CodeQL candidate; Dependabot unavailable/disabled so requested aggregate coverage correctly returned incomplete/exit 2. Heaven returned 41 CodeQL and 2 Dependabot observations; native+API baseline normalized 48 records to 40 candidates. Tree normalized 261 records to 224 candidates. Every baseline candidate remained pending; none was auto-dismissed, risk-accepted or used to authorize a repair.
+
+Full native reports/alerts remained owner-only outside Git and are not uploaded. Public evidence is counts/configuration and safe synthetic tests only. Later commit/CI evidence must be checked before merge; working-tree baselines do not claim to certify a final release.
+
+### Independent review loop
+Founder requested worker-astra at medium, max three rounds. Round 1 ran explicit `openai/gpt-6-astra`, medium, no fallback. It identified unsafe draft assumptions and workflow/contract gaps. Lead replaced them before integration: trusted policy isolation, tri-state pending validation, no automatic suppression, explicit native failures, aligned schemas, conservative export and restricted evidence handling. Round 2 independently ran all then-current 32 tests and reproduced four additional contract-boundary issues. These were corrected and tested: strict native JSON/nested/pagination envelopes, report revision/origin/canonical identity and evidence-digest binding, runtime schema/semantic validation for dispositions, and ecosystem-aware dependency identity with unknown-bridge isolation. Round 3 independently ran 41 tests and verified revision/origin/canonical identity/evidence binding, strict review records and ecosystem isolation. It withheld readiness because unknown GitHub alert state strings were being skipped as closed. Lead then constrained CodeQL/Dependabot states to their supported enums, made unknown states incomplete, and added snapshot plus live-path mock regressions for both tools and known-closed handling. Final suite: **43 passed**. The three-round limit was respected; the last small correction was lead-verified, not independently re-reviewed. No claim of Astra final sign-off or production certification is made.
+
+## 5. Scanner coverage and integration compatibility
+|Capability|Implemented/observed|Not claimed|
+|---|---|---|
+|CodeQL|Preserved target default setup; read-only config/analysis/open-alert inspection|Local CodeQL execution, paid AI Scan, new central setup activation|
+|Semgrep CE|Versioned profile, adapter, native core rule/fixture validation|Full target CE CLI execution on Android; semantic completeness of all rules|
+|Trivy|Native filesystem misconfiguration adapter/profile|Image/OS/container vulnerability coverage|
+|Gitleaks|Native working-tree scan, redacted temporary report|Full Git history or credential validity|
+|OSV|Native supported-source dependency scan, advisory aliases/package metadata|Reachability/exploitation proof or all ecosystems|
+|Dependabot|Read-only native alert ingestion; low-churn opt-in config template|Settings activation or automatic update adoption in targets|
+|Steward|Review-only traceable proposals and one-PR/run batch key|Automatic dispatch, acceptance, repair, merge or widened authority|
+
+## 6. Security limitations
+Business logic, authorization across services, dynamic agent/host permissions, natural-language prompt injection, deployment exposure, secret validity and build-time trust require separate investigation. Redaction recognizes finite formats; detailed reports remain restricted even after sanitization. Fingerprints are not encryption. Unknown APIs, unavailable binaries and partial parsing are never clean scans.
+
+File-based workflow posture is a hint, not full YAML/job permission verification. Advanced workflow presence is not proof of successful analysis. Dependency version ranges and development labels are not installed-version or nonreachability proofs. No blanket fixture, lockfile or disposition allowlists are shipped. Reviewed exceptions may expire and cannot apply to dirty/new source revisions.
+
+## 7. Costs and execution requirements
+No additional subscription, paid AI feature, metered scanning service or cloud infrastructure enabled. Existing Pi agents/compute and public open-source tooling were used; agent inference consumes existing harness resources and is not represented as literally cost-free. Local CPU, disk and upstream database/download traffic remain operational requirements. Standard public GitHub runners are normally free; larger/private runners and storage require explicit budget review.
+
+Python CLI: standard library, >=3.11. Development checks: jsonschema 4.26.0 / PyYAML 6.0.3. Native tools require installation; installer targets Linux x86_64/aarch64 and intentionally rejects Android's platform identifier. Its isolated download/checksum/extraction path was exercised with simulated Linux host classification on Android: pinned Gitleaks 8.30.1, OSV 2.7.0 and Trivy 0.76.2 arm64 assets all passed SHA-256 verification. This does not certify a real supported Linux host. Termux validation used explicitly documented local compatibility wrappers. Hosted workflow is designed for Ubuntu/Python 3.12 and was **not dispatched**, because it remains behind the PR merge gate.
+
+## 8. Outstanding issues
+- Founder decisions on new central private reporting, native CodeQL/secret scanning and target push protection; private interim intake remains usable.
+- Private triage of existing target candidates, with no public payloads or blanket risk acceptance.
+- Full supported-platform Skill Heaven suite/CI verification; local targeted regression tests pass. The same five platform/projection failures reproduce on this branch and unchanged main in two focused suites; a broad run was interrupted. No full-suite green is claimed.
+- Full Semgrep CE CLI target scans, remaining native rule-positive/negative fixtures and hosted manual/reusable workflow runtime verification after authorized merge.
+- No full-history secret scan or image/OS vulnerability scan claimed. Future private repository adoption requires credential/isolation/cost review.
+
+## 9. GitHub configuration changes awaiting approval
+All exact commands, effects, rollback cautions and cost eligibility notes are in [GITHUB_SETTINGS_APPROVAL_QUEUE.md](../governance/GITHUB_SETTINGS_APPROVAL_QUEUE.md). **None executed.** No organization security settings, branch protection, billing, paid features, private-reporting settings or existing production controls were mutated. All implementation branches are to be pushed and PR-reviewed; no merge or deployment authorization requested or exercised.

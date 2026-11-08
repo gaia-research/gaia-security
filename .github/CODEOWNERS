@@ -1,0 +1,10 @@
+# Gaia Security Code Ownership
+# Explicit approval from @mbtiongson1 is required for governance policies,
+# scanner profiles, registry catalogs, schemas, and security workflows.
+
+* @mbtiongson1
+governance/ @mbtiongson1
+profiles/ @mbtiongson1
+registry/ @mbtiongson1
+schemas/ @mbtiongson1
+.github/workflows/ @mbtiongson1

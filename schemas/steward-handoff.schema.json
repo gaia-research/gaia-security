@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gaia-research/gaia-security/schemas/steward-handoff.schema.json",
+  "title": "Advisory Steward proposals",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "schema_version": {
+        "const": "1.0.0"
+      },
+      "target_repository": {
+        "type": "string"
+      },
+      "target_branch": {
+        "type": "string"
+      },
+      "batch_group_key": {
+        "type": "string"
+      },
+      "authorization_status": {
+        "const": "requires_human_or_lead_approval"
+      },
+      "integration_pr_limit": {
+        "const": 1
+      },
+      "items": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "properties": {
+            "finding_id": {
+              "type": "string"
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "validation_summary": {
+              "type": "object",
+              "properties": {
+                "is_genuine": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "is_reachable": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "boundary_crossed": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "exploitation_plausible": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "existing_mitigations": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "duplicate_of": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "disposition": {
+                  "enum": [
+                    "pending_validation",
+                    "action_required",
+                    "remediated_in_pr",
+                    "false_positive",
+                    "accepted_risk",
+                    "test_fixture_excluded",
+                    "deferred_steward_wave"
+                  ]
+                },
+                "validated_priority": {
+                  "enum": [
+                    "UNASSESSED",
+                    "P0",
+                    "P1",
+                    "P2",
+                    "P3",
+                    "P4",
+                    "NONE"
+                  ]
+                },
+                "confidence": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                "rationale": {
+                  "type": "string"
+                },
+                "disposition_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "is_genuine",
+                "is_reachable",
+                "boundary_crossed",
+                "exploitation_plausible",
+                "existing_mitigations",
+                "duplicate_of",
+                "disposition",
+                "validated_priority",
+                "confidence",
+                "rationale",
+                "disposition_id"
+              ],
+              "additionalProperties": false
+            },
+            "repair_spec": {
+              "type": "object",
+              "properties": {
+                "recommended_action": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "recommended_action"
+              ],
+              "additionalProperties": false
+            },
+            "verification_contract": {
+              "type": "object",
+              "properties": {
+                "regression_test_requirement": {
+                  "type": "string"
+                },
+                "verification_steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "regression_test_requirement",
+                "verification_steps"
+              ],
+              "additionalProperties": false
+            },
+            "authorization_status": {
+              "const": "requires_human_or_lead_approval"
+            },
+            "batch_group_key": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "finding_id",
+            "evidence_refs",
+            "validation_summary",
+            "repair_spec",
+            "verification_contract",
+            "authorization_status",
+            "batch_group_key"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": [
+      "schema_version",
+      "target_repository",
+      "target_branch",
+      "batch_group_key",
+      "authorization_status",
+      "integration_pr_limit",
+      "items"
+    ],
+    "additionalProperties": false
+  }
+}

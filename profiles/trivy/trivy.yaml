@@ -1,0 +1,14 @@
+{
+  "scan": {
+    "scanners": [
+      "misconfig"
+    ],
+    "skip-dirs": [
+      "node_modules",
+      ".venv",
+      ".git",
+      ".gaia-sec-tmp"
+    ]
+  },
+  "format": "json"
+}

@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gaia-research/gaia-security/schemas/scan-report.schema.json",
+  "title": "Restricted scan report",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "repository": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "handling": {
+      "type": "string"
+    },
+    "scanners_run": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scanners_telemetry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "scanner": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "executed": {
+            "type": "boolean"
+          },
+          "config_validated": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exit_code": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "findings_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "notes": {
+            "type": "string"
+          },
+          "complete": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "scanner",
+          "available",
+          "executed",
+          "config_validated",
+          "version",
+          "command",
+          "exit_code",
+          "duration_ms",
+          "findings_count",
+          "notes",
+          "complete"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "posture": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "stage_a_metrics": {
+      "type": "object",
+      "properties": {
+        "raw_detections": {
+          "type": "integer"
+        },
+        "deduplicated_findings": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "raw_detections",
+        "deduplicated_findings"
+      ],
+      "additionalProperties": false
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "total_findings": {
+          "type": "integer"
+        },
+        "pending_validation": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_findings",
+        "pending_validation"
+      ],
+      "additionalProperties": false
+    },
+    "coverage_limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "finding.schema.json"
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository",
+    "generated_at",
+    "handling",
+    "scanners_run",
+    "scanners_telemetry",
+    "complete",
+    "posture",
+    "stage_a_metrics",
+    "summary",
+    "coverage_limitations",
+    "metadata",
+    "findings"
+  ],
+  "additionalProperties": false
+}
