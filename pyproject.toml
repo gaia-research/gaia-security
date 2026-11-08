@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gaia-security"
+version = "0.1.0"
+description = "Gaia Security foundation: static analysis orchestration, secret redaction, and multi-stage vulnerability triage/validation engine"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Gaia Research & Security Stewards" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Topic :: Security",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = []
+
+[project.scripts]
+gaia-sec = "gaia_security.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

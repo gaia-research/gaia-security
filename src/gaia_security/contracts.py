@@ -66,12 +66,19 @@ def validate_native(scanner,data):
             check(item['extra'],dict,'extra')
     elif scanner == 'trivy':
         if data.get('SchemaVersion') != 2: raise ValueError('Unsupported Trivy schema')
-        string(data,'ArtifactName');string(data,'ArtifactType');check(data['Metadata'],dict,'Metadata')
+        string(data,'ArtifactName')
+        if string(data,'ArtifactType') not in {'filesystem','repository'}:
+            raise ValueError('Unexpected Trivy filesystem artifact type')
+        # Trivy omits Metadata for a filesystem scan, but includes it for a
+        # repository scan. Validate it when supplied, not as a mandatory key.
+        check(data.get('Metadata',{}),dict,'Metadata')
         # Native empty Trivy scans legitimately omit Results entirely.
         for result in check([] if data.get('Results') is None else data['Results'],list,'Results'):
             check(result,dict,'result');string(result,'Target')
             for item in check([] if result.get('Misconfigurations') is None else result['Misconfigurations'],list,'Misconfigurations'):
                 check(item,dict,'misconfiguration');string(item,'ID');string(item,'Severity')
+                if item.get('Status','FAIL') not in {'FAIL','PASS','EXCEPTION'}:
+                    raise ValueError('Unknown Trivy misconfiguration status')
                 check(item.get('CauseMetadata',{}),dict,'CauseMetadata')
     else:
         raise ValueError('Unsupported native envelope')

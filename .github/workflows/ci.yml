@@ -25,3 +25,8 @@ jobs:
       - run: PYTHONPATH=src python3 -m unittest discover -s tests -v
       - run: PYTHONPATH=src python3 -m gaia_security validate-configs
       - run: PYTHONPATH=src python3 -m gaia_security selftest
+      - name: Verify installed CLI against explicit trusted governance
+        run: |
+          python3 -m pip install --no-deps .
+          cd "$RUNNER_TEMP"
+          GAIA_SECURITY_ROOT="$GITHUB_WORKSPACE" gaia-sec selftest

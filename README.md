@@ -52,7 +52,7 @@ Choose a subset explicitly with `--scanners`. Missing/failing requested scanners
 Gitleaks covers working-tree files, Trivy covers misconfigurations, OSV covers supported dependency sources, Semgrep covers the checked-in CE rules. CodeQL default setup remains GitHub-owned. An empty dependency graph may be not applicable; it is not a proven all-clear. No image/OS scanning, active production exploitation or business-logic/authorization proof is claimed.
 
 ## Review and Steward
-All six Stage B questions require investigation. [Disposition entries](registry/dispositions.json) start empty: no agent can fabricate human approval or historical decisions. Trusted reviewed entries are exact-finding, exact-clean-revision, full-evidence-SHA-256 and expiry bound, with runtime type/enum/semantic checks. Detection never authorizes repair.
+All six Stage B questions require investigation. [Disposition entries](registry/dispositions.json) start empty: no agent can fabricate human approval or historical decisions. Trusted reviewed entries are exact-finding, exact-clean-revision, full-evidence-SHA-256 and expiry bound, with runtime type/enum/semantic checks. Applying a reviewed disposition during scanning also requires a matching GitHub checkout origin; otherwise findings remain pending. Detection never authorizes repair.
 
 ```bash
 python3 -m gaia_security steward-export \

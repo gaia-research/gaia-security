@@ -34,6 +34,25 @@ class BoundaryRegressionTests(unittest.TestCase):
         for name,data in cases:
             with self.subTest(name=name),self.assertRaises((ValueError,KeyError,TypeError)):
                 validate_native(name,data)
+    def test_unknown_trivy_status_is_incomplete(self):
+        envelope={'SchemaVersion':2,'ArtifactName':'test','ArtifactType':'filesystem','Results':[{'Target':'test.yaml','Misconfigurations':[{'ID':'SYNTHETIC','Severity':'HIGH','Status':'unexpected'}]}]}
+        with patch('shutil.which',return_value='/native'),patch('subprocess.run',return_value=subprocess.CompletedProcess([],0,json.dumps(envelope),'')):
+            status,records=ScannerRunner('.','gaia-research/gaia-security').run_trivy()
+        self.assertFalse(status.complete)
+        self.assertEqual(records,[])
+        for state in ('FAIL','PASS','EXCEPTION'):
+            envelope['Results'][0]['Misconfigurations'][0]['Status']=state
+            validate_native('trivy',envelope)
+
+    def test_scan_review_requires_matching_origin(self):
+        from gaia_security.pipeline import SecurityPipeline
+        f=candidate()
+        for origin,expected in [('https://github.com/'+f.repository+'.git','action_required'),('git@github.com:'+f.repository+'.git','action_required'),('https://github.com/other/fork.git','pending_validation'),('','pending_validation')]:
+            replies=[subprocess.CompletedProcess([],0,'a'*40,''),subprocess.CompletedProcess([],0,'',''),subprocess.CompletedProcess([],0,origin,'')]
+            with patch('gaia_security.pipeline.load_dispositions',return_value=approved(f)),patch('gaia_security.pipeline.load_repositories',return_value={'repositories':[]}),patch('subprocess.run',side_effect=replies):
+                pipeline=SecurityPipeline(f.repository,'.')
+            self.assertEqual(pipeline.process_findings([copy.deepcopy(f)])[0].validation.disposition,expected)
+
     def test_unknown_alert_states_incomplete_for_both_native_apis(self):
         examples={
             'codeql':{'state':'unexpected','rule':{'id':'synthetic'},'most_recent_instance':{'location':{'path':'synthetic.py','start_line':1}}},
@@ -58,6 +77,8 @@ class BoundaryRegressionTests(unittest.TestCase):
         validate_native('semgrep-ce',{'results':[],'errors':[]})
         validate_native('osv-scanner',{'results':[]})
         validate_native('trivy',{'SchemaVersion':2,'ArtifactName':'test','ArtifactType':'repository','Metadata':{}})
+        # Native filesystem output omits optional Metadata (observed v0.76.2).
+        validate_native('trivy',{'SchemaVersion':2,'ArtifactName':'test','ArtifactType':'filesystem','Results':[]})
     def test_invalid_review_stays_pending(self):
         f=candidate()
         variants=[('disposition','made_up_suppression'),('existing_mitigations','not-a-list'),('duplicate_of',123),('validated_priority','UNKNOWN')]

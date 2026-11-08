@@ -2,6 +2,7 @@
 from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
+import re
 import subprocess
 from gaia_security.models import NormalizedFinding, ValidationAssessment, RemediationPlan
 from gaia_security.registry import load_dispositions, load_repositories
@@ -65,10 +66,15 @@ class SecurityPipeline:
         dirty = subprocess.run(['git', '-C', str(self.target_path), 'status', '--porcelain'], capture_output=True, text=True)
         if dirty.returncode or dirty.stdout.strip():
             self.source_commit = None  # reviewed revision does not cover a dirty checkout
+        remote = subprocess.run(['git','-C',str(self.target_path),'remote','get-url','origin'],capture_output=True,text=True)
+        url = remote.stdout.strip().removesuffix('.git')
+        match = re.fullmatch(r'(?:https://github.com/|git@github.com:)([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)',url)
+        self.origin_verified = bool(remote.returncode == 0 and match and match.group(1) == repository)
 
     def process_findings(self, findings):
         repo = next((r for r in self.repositories_data['repositories'] if r['repository'] == self.repository), {})
         for finding in findings:
-            finding.validation = validate_finding(finding, self.dispositions_data, self.repositories_data, self.source_commit)
+            finding.validation = validate_finding(finding, self.dispositions_data, self.repositories_data,
+                self.source_commit if self.origin_verified else None)
             finding.remediation = plan_remediation(finding, finding.validation, repo.get('default_branch', 'main'))
         return findings
