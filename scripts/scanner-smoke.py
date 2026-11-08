@@ -4,6 +4,7 @@
 Only static counts/check names are printed. Detailed reports stay in owner-only
 scratch space and are removed even when a check fails. No GitHub API access.
 """
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -29,14 +30,26 @@ def invoke(command, env, expected):
     return result
 
 
+@contextmanager
+def restricted_scratch(runner_temp):
+    # Keep ALL smoke reports under the same always-cleaned workflow root,
+    # including when the Python process is cancelled before finally can run.
+    evidence=runner_temp/'gaia-evidence'
+    evidence.mkdir(mode=0o700)
+    try:
+        with tempfile.TemporaryDirectory(prefix='smoke-',dir=evidence) as temporary:
+            yield Path(temporary)
+    finally:
+        shutil.rmtree(evidence)
+
+
 def validate():
     require(sys.platform=='linux','Native smoke requires Linux')
     root=Path(os.environ['GAIA_SECURITY_ROOT']).resolve()
     runner_temp=Path(os.environ['RUNNER_TEMP']).resolve()
     for binary in ('gitleaks','osv-scanner','trivy','semgrep','git','bash'):
         require(shutil.which(binary) is not None,'Required native smoke tool unavailable')
-    with tempfile.TemporaryDirectory(prefix='gaia-smoke-',dir=runner_temp) as temporary:
-        scratch=Path(temporary)
+    with restricted_scratch(runner_temp) as scratch:
         require(stat.S_IMODE(scratch.stat().st_mode)==0o700,'Scratch permissions not restricted')
         native_tmp=scratch/'native-tmp';native_tmp.mkdir(mode=0o700)
         env=dict(os.environ,PYTHONPATH=str(root/'src'),TMPDIR=str(native_tmp))
@@ -49,9 +62,10 @@ def validate():
         (positive/'patterns.py').write_text('import pickle\nimport subprocess\npickle.loads(payload)\nsubprocess.run(command, shell=True)\n')
         (negative/'patterns.py').write_text('import json\nimport subprocess\njson.loads(payload)\nsubprocess.run(["echo", "safe"], shell=False)\n')
         (positive/'requirements.txt').write_text('urllib3==1.26.0\n')
-        # A synthetic unregistered package avoids depending on a moving "latest"
-        # release. This is an advisory-negative fixture, not a safety claim.
-        (negative/'requirements.txt').write_text('gaia-security-smoke-nonexistent-fixture==1.0.0\n')
+        # Use a real resolvable, pinned advisory-negative package. Nonexistent
+        # packages cause a native resolution failure, not a clean negative.
+        # A future advisory should fail this smoke check, not be suppressed.
+        (negative/'requirements.txt').write_text('six==1.17.0\n')
         docker='FROM scratch\nUSER {user}\nHEALTHCHECK CMD ["/bin/true"]\n'
         (positive/'Dockerfile').write_text(docker.format(user='root'))
         (negative/'Dockerfile').write_text(docker.format(user='65532:65532'))
@@ -103,13 +117,17 @@ def validate():
                 require(receipt['scanners'][0]['exit_code']==expected,'Incomplete failure telemetry mismatch')
             require(not (work/'gaia-evidence').exists(),'Workflow evidence cleanup failed')
             print(json.dumps({'check':'restricted-wrapper','case':case,'exit_code':result.returncode,'cleanup':True}))
-    require(not scratch.exists(),'Synthetic smoke evidence cleanup failed')
+    require(not scratch.exists() and not (runner_temp/'gaia-evidence').exists(),'Synthetic smoke evidence cleanup failed')
     print(json.dumps({'check':'smoke-scratch-cleanup','removed':True}))
 
 
 if __name__=='__main__':
     try:
         validate()
+    except RuntimeError as error:
+        # require() uses only fixed, developer-authored messages, never findings.
+        print('Native scanner smoke failed: '+str(error),file=sys.stderr)
+        sys.exit(2)
     except Exception:
         # Never print subprocess stderr, assertion payloads or private reports.
         print('Native scanner smoke failed; no private evidence published',file=sys.stderr)

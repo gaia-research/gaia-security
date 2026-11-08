@@ -1,6 +1,7 @@
 """Restricted workflow wrapper: preserve scanner failures and clean private output."""
 import json
 import os
+import runpy
 from pathlib import Path
 import shutil
 import subprocess
@@ -37,6 +38,16 @@ class RestrictedScanTests(unittest.TestCase):
                 self.assertEqual(lines[-1],'Restricted evidence cleanup verified')
                 self.assertEqual(json.loads(lines[0])['complete'],case=='success')
                 self.assertNotIn('private-diagnostic',result.stdout+result.stderr)
+
+    def test_smoke_scratch_cleanup_on_exception(self):
+        scratch_context=runpy.run_path(str(find_repo_root()/'scripts/scanner-smoke.py'))['restricted_scratch']
+        with TemporaryDirectory() as tmp:
+            work=Path(tmp)
+            with self.assertRaises(RuntimeError):
+                with scratch_context(work) as scratch:
+                    (scratch/'restricted-report.json').write_text('synthetic')
+                    raise RuntimeError('injected smoke failure')
+            self.assertFalse((work/'gaia-evidence').exists())
 
     def test_existing_evidence_not_taken_over_or_deleted(self):
         root=find_repo_root()
