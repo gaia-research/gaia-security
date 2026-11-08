@@ -92,17 +92,22 @@ def validate():
                 require(dummy not in result.stdout and dummy not in result.stderr,'Dummy credential reached terminal output')
                 require(not list(native_tmp.glob('gaia-sec-*')),'Gitleaks temporary evidence not removed')
                 print(json.dumps({'check':'native-fixture','scanner':scanner,'case':label,'complete':True,'findings':len(data['findings'])}))
-        # A real native parser error, not just an unavailable/fake executable,
-        # must propagate incomplete coverage through the public CLI.
-        partial=scratch/'partial';partial.mkdir(mode=0o700)
-        (partial/'valid.py').write_text((positive/'patterns.py').read_text())
-        (partial/'broken.py').write_text('def unfinished(\n')
-        partial_report=scratch/'partial.json'
-        result=invoke([sys.executable,'-m','gaia_security','scan','--repo',REPO,'--path',str(partial),'--scanners','semgrep-ce','--output-json',str(partial_report)],env,2)
+        # Force a real native configuration failure, not a fake executable.
+        # Use a disposable explicit governance copy; NEVER edit baseline profiles.
+        # Malformed source alone is not reliable: native parser recovery may
+        # legitimately return no error for an unfinished fragment.
+        invalid=scratch/'invalid-governance';invalid.mkdir(mode=0o700)
+        for directory in ('registry','schemas'):
+            shutil.copytree(root/directory,invalid/directory)
+        config=invalid/'profiles/semgrep';config.mkdir(parents=True)
+        (config/'gaia-security.yml').write_text('rules: [\n')
+        partial_report=scratch/'incomplete.json'
+        invalid_env=dict(env,GAIA_SECURITY_ROOT=str(invalid))
+        result=invoke([sys.executable,'-m','gaia_security','scan','--repo',REPO,'--path',str(negative),'--scanners','semgrep-ce','--output-json',str(partial_report)],invalid_env,2)
         data=json.loads(partial_report.read_text())
         status=data['scanners_telemetry'][0]
-        require(not data['complete'] and status['executed'] and not status['complete'],'Native parser error incorrectly marked clean')
-        require(stat.S_IMODE(partial_report.stat().st_mode)==0o600,'Partial evidence permissions not restricted')
+        require(not data['complete'] and status['executed'] and not status['complete'],'Native configuration failure incorrectly marked clean')
+        require(stat.S_IMODE(partial_report.stat().st_mode)==0o600,'Incomplete evidence permissions not restricted')
         print(json.dumps({'check':'native-incomplete','scanner':'semgrep-ce','exit_code':2,'native_exit':status['exit_code'],'complete':False}))
         # Exercise the SAME shell wrapper as the reusable workflow. Missing,
         # failing and malformed scanners must preserve exit 2 and delete both
