@@ -1,0 +1,209 @@
+{
+  "rules": [
+    {
+      "id": "gaia.python.unsafe-pickle-deserialization",
+      "languages": [
+        "python"
+      ],
+      "severity": "ERROR",
+      "message": "Unsafe pickle deserialization detected. Use SafeTensors, GGUF, or ONNX for model weights, or specify torch.load(..., weights_only=True) to prevent remote code execution.",
+      "metadata": {
+        "cwe": [
+          "CWE-502: Deserialization of Untrusted Data"
+        ],
+        "category": "security",
+        "confidence": "HIGH"
+      },
+      "patterns": [
+        {
+          "pattern-either": [
+            {
+              "pattern": "pickle.load(...)"
+            },
+            {
+              "pattern": "pickle.loads(...)"
+            },
+            {
+              "pattern": "_pickle.load(...)"
+            },
+            {
+              "pattern": "_pickle.loads(...)"
+            },
+            {
+              "patterns": [
+                {
+                  "pattern": "torch.load($TARGET, ...)"
+                },
+                {
+                  "pattern-not": "torch.load(..., weights_only=True, ...)"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gaia.python.dangerous-exec-eval",
+      "languages": [
+        "python"
+      ],
+      "severity": "WARNING",
+      "message": "Dynamic code execution via eval/exec on variable input detected. Refactor to deterministic parsing or ast.literal_eval.",
+      "metadata": {
+        "cwe": [
+          "CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code ('Eval Injection')"
+        ],
+        "category": "security",
+        "confidence": "MEDIUM"
+      },
+      "patterns": [
+        {
+          "pattern-either": [
+            {
+              "pattern": "eval($INPUT, ...)"
+            },
+            {
+              "pattern": "exec($INPUT, ...)"
+            }
+          ]
+        },
+        {
+          "pattern-not": "eval(\"...\", ...)"
+        },
+        {
+          "pattern-not": "exec(\"...\", ...)"
+        }
+      ]
+    },
+    {
+      "id": "gaia.python.subprocess-shell-true",
+      "languages": [
+        "python"
+      ],
+      "severity": "WARNING",
+      "message": "Subprocess invocation with shell=True detected. Pass argument vectors directly as a list without shell=True to avoid command injection.",
+      "metadata": {
+        "cwe": [
+          "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+        ],
+        "category": "security",
+        "confidence": "HIGH"
+      },
+      "pattern-either": [
+        {
+          "pattern": "subprocess.Popen(..., shell=True, ...)"
+        },
+        {
+          "pattern": "subprocess.run(..., shell=True, ...)"
+        },
+        {
+          "pattern": "subprocess.call(..., shell=True, ...)"
+        },
+        {
+          "pattern": "subprocess.check_call(..., shell=True, ...)"
+        },
+        {
+          "pattern": "subprocess.check_output(..., shell=True, ...)"
+        }
+      ]
+    },
+    {
+      "id": "gaia.ts.dom-xss-innerhtml",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "severity": "ERROR",
+      "message": "Direct assignment to innerHTML/outerHTML or document.write detected. This can lead to DOM Cross-Site Scripting (XSS). Use textContent or a sanitized sink.",
+      "metadata": {
+        "cwe": [
+          "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+        ],
+        "category": "security",
+        "confidence": "HIGH"
+      },
+      "pattern-either": [
+        {
+          "pattern": "$ELEM.innerHTML = $VAL"
+        },
+        {
+          "pattern": "$ELEM.outerHTML = $VAL"
+        },
+        {
+          "pattern": "document.write(...)"
+        }
+      ]
+    },
+    {
+      "id": "gaia.ts.dynamic-regexp-construction",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "severity": "WARNING",
+      "message": "Dynamic RegExp constructor called with non-literal argument. Can lead to Polynomial ReDoS or regular expression injection.",
+      "metadata": {
+        "cwe": [
+          "CWE-1333: Inefficient Regular Expression Complexity"
+        ],
+        "category": "security",
+        "confidence": "MEDIUM"
+      },
+      "patterns": [
+        {
+          "pattern": "new RegExp($PATTERN, ...)"
+        },
+        {
+          "pattern-not": "new RegExp(\"...\", ...)"
+        }
+      ]
+    },
+    {
+      "id": "gaia.ts.terminal-untrusted-ansi-escape",
+      "languages": [
+        "typescript",
+        "javascript"
+      ],
+      "severity": "WARNING",
+      "message": "ANSI escape sequence interpolation detected. Sanitize terminal sequences from untrusted inputs to prevent terminal title spoofing or log manipulation.",
+      "metadata": {
+        "cwe": [
+          "CWE-150: Improper Neutralization of Escape, Meta, or Control Sequences"
+        ],
+        "category": "security",
+        "confidence": "MEDIUM"
+      },
+      "pattern-either": [
+        {
+          "pattern": "`...${...}\\x1b[...`\n"
+        },
+        {
+          "pattern": "`...\\x1b[...${...}...`\n"
+        },
+        {
+          "pattern": "`...${...}\\u001b[...`\n"
+        },
+        {
+          "pattern": "`...\\u001b[...${...}...`\n"
+        }
+      ]
+    },
+    {
+      "id": "gaia.actions.pull-request-target-checkout",
+      "languages": [
+        "yaml"
+      ],
+      "severity": "ERROR",
+      "message": "Dangerous checkout of untrusted pull request head branch inside pull_request_target. This grants untrusted code access to repository secrets.",
+      "metadata": {
+        "cwe": [
+          "CWE-829: Inclusion of Functionality from Untrusted Control Sphere"
+        ],
+        "category": "security",
+        "confidence": "HIGH"
+      },
+      "pattern": "on:\n  pull_request_target: ...\njobs:\n  $JOB:\n    steps:\n      - ...\n      - uses: actions/checkout@$VER\n        with:\n          ref: ${{ github.event.pull_request.head.sha }}\n"
+    }
+  ]
+}

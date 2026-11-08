@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gaia-research/gaia-security/schemas/repository-registry.schema.json",
+  "title": "Onboarding registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repositories",
+    "expansion_candidates"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "repository",
+          "tier",
+          "visibility",
+          "default_branch",
+          "codeql_mode",
+          "scanners"
+        ],
+        "properties": {
+          "repository": {
+            "type": "string",
+            "pattern": "^gaia-research/[A-Za-z0-9_.-]+$"
+          },
+          "visibility": {
+            "enum": [
+              "public",
+              "private"
+            ]
+          },
+          "scanners": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "expansion_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "repository"
+        ]
+      }
+    }
+  }
+}

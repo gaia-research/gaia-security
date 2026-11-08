@@ -1,0 +1,20 @@
+title = "Gaia Security Gitleaks Profile"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "gaia-mcp-bearer-token"
+description = "Detected Gaia MCP Bearer Authentication Token"
+regex = '''(?i)(?:gaia[_-]?mcp[_-]?(?:token|bearer|key))\s*[:=]\s*['"]([a-zA-Z0-9_\-\.]{32,128})['"]'''
+secretGroup = 1
+# No keyword prefilter: the regex intentionally accepts omitted/mixed separators
+# and key/token/bearer spellings. A partial keyword list would skip valid matches.
+
+[[rules]]
+id = "gaia-jwt-session-token"
+description = "Detected Gaia Session JSON Web Token"
+regex = '''(?i)(?:gaia[_-]?session[_-]?(?:token|jwt))\s*[:=]\s*['"](ey[a-zA-Z0-9_-]{10,}\.ey[a-zA-Z0-9_-]{10,}\.[a-zA-Z0-9_\-]{10,})['"]'''
+secretGroup = 1
+# No partial keyword prefilter; all regex spellings must be scanned.
+

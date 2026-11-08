@@ -1,0 +1,93 @@
+name: Manual comprehensive security scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      governance_ref:
+        description: Reviewed gaia-security 40-character commit SHA
+        required: true
+        type: string
+      scanners:
+        description: all or comma-separated gitleaks,osv-scanner,trivy,semgrep-ce
+        default: all
+        type: string
+  workflow_call:
+    inputs:
+      governance_ref:
+        required: true
+        type: string
+      scanners:
+        default: all
+        type: string
+      validate_fixtures:
+        description: Run synthetic Linux smoke cases before the caller scan
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-manual-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Validate pinned governance input
+        env:
+          GOVERNANCE_REF: ${{ inputs.governance_ref }}
+        run: |
+          [[ "$GOVERNANCE_REF" =~ ^[0-9a-f]{40}$ ]] || exit 2
+      - name: Check out caller repository (execution remains repository-local)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          path: target
+          persist-credentials: false
+      - name: Check out reviewed governance
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          repository: gaia-research/gaia-security
+          ref: ${{ inputs.governance_ref }}
+          path: governance
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - name: Confirm caller is onboarded
+        env:
+          CALLER_REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          repos=json.load(open('governance/registry/repositories.json'))['repositories']
+          assert any(r['repository']==os.environ['CALLER_REPO'] and r['visibility']=='public' for r in repos)
+          PY
+      - name: Install pinned open-source scanners
+        run: |
+          python3 governance/scripts/install-scanners.py --destination "$RUNNER_TEMP/gaia-tools"
+          echo "$RUNNER_TEMP/gaia-tools" >> "$GITHUB_PATH"
+          python3 -m pip install 'semgrep==1.184.0'
+      - name: Validate native fixtures and failure cleanup (opt-in smoke only)
+        if: ${{ inputs.validate_fixtures == true }}
+        env:
+          GAIA_SECURITY_ROOT: ${{ github.workspace }}/governance
+        run: python3 governance/scripts/scanner-smoke.py
+      - name: Execute requested scanners (no API secrets passed)
+        env:
+          PYTHONPATH: governance/src
+          GAIA_SECURITY_ROOT: ${{ github.workspace }}/governance
+          CALLER_REPO: ${{ github.repository }}
+          SCANNERS: ${{ inputs.scanners }}
+        run: |
+          bash governance/scripts/run-restricted-scan.sh target
+      - name: Evidence handling notice
+        if: always()
+        run: |
+          echo 'Scanner completion receipt is counts-only. Restricted findings are not uploaded to public Actions artifacts.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Use the same CLI on an authorized local/private runner for durable restricted evidence and Steward proposals.' >> "$GITHUB_STEP_SUMMARY"
+          rm -rf -- "$RUNNER_TEMP/gaia-evidence"
+          test ! -e "$RUNNER_TEMP/gaia-evidence"
+          echo 'Restricted workflow evidence cleanup verified.' >> "$GITHUB_STEP_SUMMARY"

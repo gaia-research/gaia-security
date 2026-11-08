@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "gaia-security-codeql-profile",
+  "version": "1.0.0",
+  "description": "CodeQL configuration profile and classification rules for Gaia Research repositories.",
+  "preferred_mode": "github-default-setup",
+  "forbid_duplicate_workflow_when_default_active": true,
+  "supported_languages": [
+    "python",
+    "javascript-typescript",
+    "actions"
+  ],
+  "query_suites": {
+    "default": "security-extended"
+  },
+  "path_classification": {
+    "production_paths": [
+      "src/**",
+      "packages/**/src/**",
+      "plugins/**/src/**",
+      "scripts/*.py",
+      "scripts/*.mjs"
+    ],
+    "test_and_fixture_paths": [
+      "tests/**",
+      "**/test/**",
+      "**/tests/**",
+      "**/fixtures/**",
+      "packages/core/test/fixtures/**",
+      ".github/skills/impeccable/scripts/**"
+    ],
+    "vendored_and_parity_paths": [
+      "packages/core/src/vendor/**",
+      "vendor/**"
+    ]
+  },
+  "disposition_handling": {
+    "test_fixtures_policy": "exclude_from_blocking_gate",
+    "vendored_parity_policy": "require_upstream_parity_signoff"
+  }
+}

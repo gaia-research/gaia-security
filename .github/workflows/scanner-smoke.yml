@@ -1,0 +1,26 @@
+name: Linux scanner smoke
+
+# Validate the existing reusable workflow on relevant implementation changes.
+# Public standard Linux runner only; no API secrets, services or finding uploads.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/manual-comprehensive-scan.yml'
+      - '.github/workflows/scanner-smoke.yml'
+      - 'scripts/install-scanners.py'
+      - 'scripts/scanner-smoke.py'
+      - 'scripts/run-restricted-scan.sh'
+      - 'src/gaia_security/scanners.py'
+      - 'tests/test_scanner_environment.py'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.repository == 'gaia-research/gaia-security' && github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/manual-comprehensive-scan.yml
+    with:
+      governance_ref: ${{ github.event.pull_request.head.sha }}
+      scanners: all
+      validate_fixtures: true
