@@ -19,6 +19,10 @@ on:
       scanners:
         default: all
         type: string
+      validate_fixtures:
+        description: Run synthetic Linux smoke cases before the caller scan
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -66,6 +70,11 @@ jobs:
           python3 governance/scripts/install-scanners.py --destination "$RUNNER_TEMP/gaia-tools"
           echo "$RUNNER_TEMP/gaia-tools" >> "$GITHUB_PATH"
           python3 -m pip install 'semgrep==1.184.0'
+      - name: Validate native fixtures and failure cleanup (opt-in smoke only)
+        if: ${{ inputs.validate_fixtures == true }}
+        env:
+          GAIA_SECURITY_ROOT: ${{ github.workspace }}/governance
+        run: python3 governance/scripts/scanner-smoke.py
       - name: Execute requested scanners (no API secrets passed)
         env:
           PYTHONPATH: governance/src
@@ -73,14 +82,12 @@ jobs:
           CALLER_REPO: ${{ github.repository }}
           SCANNERS: ${{ inputs.scanners }}
         run: |
-          mkdir -m 700 "$RUNNER_TEMP/gaia-evidence"
-          python3 -m gaia_security scan --repo "$CALLER_REPO" --path target \
-            --scanners "$SCANNERS" \
-            --output-json "$RUNNER_TEMP/gaia-evidence/report.json" \
-            --output-md "$RUNNER_TEMP/gaia-evidence/report.md"
+          bash governance/scripts/run-restricted-scan.sh target
       - name: Evidence handling notice
         if: always()
         run: |
           echo 'Scanner completion receipt is counts-only. Restricted findings are not uploaded to public Actions artifacts.' >> "$GITHUB_STEP_SUMMARY"
           echo 'Use the same CLI on an authorized local/private runner for durable restricted evidence and Steward proposals.' >> "$GITHUB_STEP_SUMMARY"
-          rm -rf "$RUNNER_TEMP/gaia-evidence"
+          rm -rf -- "$RUNNER_TEMP/gaia-evidence"
+          test ! -e "$RUNNER_TEMP/gaia-evidence"
+          echo 'Restricted workflow evidence cleanup verified.' >> "$GITHUB_STEP_SUMMARY"

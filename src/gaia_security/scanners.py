@@ -75,6 +75,16 @@ def parse_github(scanner, alerts):
     return evidence
 
 
+def scanner_environment():
+    """Copy the caller environment, excluding credentials from parser subprocesses."""
+    env = dict(os.environ)
+    for name in list(env):
+        if any(k in name.upper() for k in ('TOKEN', 'SECRET', 'API_KEY', 'PASSWORD')):
+            env.pop(name)
+    env.update({'SEMGREP_SEND_METRICS': 'off', 'SEMGREP_ENABLE_VERSION_CHECK': '0'})
+    return env
+
+
 class ScannerRunner:
     def __init__(self, target_path, repository_name=None):
         self.target_path = Path(target_path).resolve()
@@ -89,12 +99,8 @@ class ScannerRunner:
         if not status.available:
             status.notes = 'Binary unavailable; NOT executed or native-config-validated'
             return status, []
-        env = dict(os.environ)
         # Scanners are parsers of untrusted source, not authorized GitHub API clients.
-        for name in list(env):
-            if any(k in name.upper() for k in ('TOKEN', 'SECRET', 'API_KEY', 'PASSWORD')):
-                env.pop(name)
-        env.update({'SEMGREP_SEND_METRICS': 'off', 'SEMGREP_ENABLE_VERSION_CHECK': '0'})
+        env = scanner_environment()
         start = time.monotonic()
         try:
             ver = subprocess.run([binary, '--version' if binary != 'gitleaks' else 'version'], capture_output=True, text=True, timeout=15, env=env)
@@ -153,10 +159,11 @@ class ScannerRunner:
             # Reuse execution telemetry with report substituted, keeping stderr out of reports.
             start = time.monotonic()
             status.command = ['gitleaks', *args]
+            env = scanner_environment()
             try:
-                ver = subprocess.run(['gitleaks','version'], capture_output=True,text=True,timeout=10)
+                ver = subprocess.run(['gitleaks','version'], capture_output=True,text=True,timeout=10,env=env)
                 status.version = ver.stdout.strip()[:200]
-                result = subprocess.run(status.command, capture_output=True,text=True,timeout=300, cwd=self.repo_root)
+                result = subprocess.run(status.command, capture_output=True,text=True,timeout=300, cwd=self.repo_root,env=env)
                 status.executed, status.exit_code = True, result.returncode
                 if result.returncode not in (0,1) or not out.is_file():
                     status.notes = 'Scanner/report failure; incomplete coverage'
